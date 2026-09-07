@@ -1,0 +1,642 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   GADZHA · AI Product Builder — mission control
+   Слои: canvas-поле → блюпринт-сетка → зерно → виньетка → контент
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* поверхность */
+  --bg:        #06080b;
+  --bg-2:      #0a0e14;
+  --bg-3:      #0d131a;
+
+  /* текст */
+  --ink:       #e9eef3;
+  --ink-2:     #a3b0bd;
+  /* светлее, чем просится по вкусу: на фоне панели #6c7a88 давал 4,31:1
+     при норме 4,5:1 по WCAG AA. Проверено замером, не на глаз. */
+  --ink-3:     #718091;
+
+  /* линии */
+  --line:      rgba(233,238,243,.10);
+  --line-2:    rgba(233,238,243,.055);
+
+  /* сигналы */
+  /* Четыре сигнала = четыре режима. Один смысл — один цвет по всей странице:
+     product/build — зелёный, quality/review — маджента,
+     infrastructure/discovery — янтарь, delivery/ship — коралл. */
+  --c-build:     #4dffa8;
+  --c-review:    #ff3d9a;
+  --c-discovery: #ffc24d;
+  --c-delivery:  #ff6b4d;
+
+  --f-disp: "Unbounded", ui-sans-serif, sans-serif;
+  --f-body: "Golos Text", ui-sans-serif, system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+
+  --shell: 1260px;
+  --pad:   clamp(1.15rem, 4vw, 3.25rem);
+  --ease:  cubic-bezier(.22,.61,.36,1);
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+
+html{ scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+@media (prefers-reduced-motion:reduce){ html{ scroll-behavior:auto; } }
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--f-body);
+  font-size:clamp(.97rem,.4vw + .88rem,1.06rem);
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+/* блюпринт-сетка */
+body::before{
+  content:""; position:fixed; inset:0; z-index:1; pointer-events:none;
+  background:
+    repeating-linear-gradient(to right, var(--line-2) 0 1px, transparent 1px 96px),
+    repeating-linear-gradient(to bottom, var(--line-2) 0 1px, transparent 1px 96px);
+  mask-image:radial-gradient(ellipse 90% 70% at 50% 40%, #000 20%, transparent 100%);
+}
+
+#field{
+  position:fixed; inset:0; z-index:0; width:100%; height:100%;
+  pointer-events:none; opacity:.85;
+}
+
+.grain{
+  position:fixed; inset:0; z-index:2; pointer-events:none; opacity:.038;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.vignette{
+  position:fixed; inset:0; z-index:2; pointer-events:none;
+  background:radial-gradient(ellipse 120% 90% at 50% 30%, transparent 35%, rgba(3,4,6,.72) 100%);
+}
+
+main, .nav, .foot{ position:relative; z-index:3; }
+
+.shell{ width:100%; max-width:var(--shell); margin-inline:auto; padding-inline:var(--pad); }
+
+.mono{
+  font-family:var(--f-mono); font-weight:500;
+  font-size:.685rem; letter-spacing:.14em; text-transform:uppercase;
+}
+
+.skip{
+  position:absolute; left:-9999px; top:0; z-index:99;
+  background:var(--c-build); color:#04140c; padding:.7rem 1.1rem; font-weight:600;
+}
+.skip:focus{ left:1rem; top:1rem; }
+
+:focus-visible{ outline:2px solid var(--c-build); outline-offset:3px; border-radius:2px; }
+
+/* ── browser surfaces ─────────────────────────────────────────────────────
+   То, что рисует браузер, а не мы: выделение текста, полоса прокрутки,
+   подчёркивание ссылок, цифры. По умолчанию всё это принадлежит системе,
+   а не системе дизайна. Забираем в свою палитру. */
+::selection{ background:var(--c-build); color:#04140c; }
+::-moz-selection{ background:var(--c-build); color:#04140c; }
+
+html{ scrollbar-color:rgba(233,238,243,.18) var(--bg); scrollbar-width:thin; }
+::-webkit-scrollbar{ width:10px; height:10px; }
+::-webkit-scrollbar-track{ background:var(--bg); }
+::-webkit-scrollbar-thumb{
+  background:rgba(233,238,243,.16); border:2px solid var(--bg);
+  transition:background .25s var(--ease);
+}
+::-webkit-scrollbar-thumb:hover{ background:var(--c-build); }
+
+a{ color:inherit; }
+/* ссылки внутри текста: подчёркивание не должно резать буквы снизу */
+p a{ text-underline-offset:.22em; text-decoration-thickness:1px; }
+
+/* индексы, сроки и номера кейсов набраны моноширинным — цифры держим в колонку */
+.mono{ font-variant-numeric:tabular-nums; }
+
+/* ── heading rhythm ────────────────────────────────────────────────────── */
+h1,h2,h3{ font-family:var(--f-disp); font-weight:300; margin:0; letter-spacing:-.02em; }
+h1{ font-size:clamp(1.78rem,2.85vw,2.72rem); line-height:1.14; }
+h2{ font-size:clamp(1.5rem,2.5vw,2.35rem); line-height:1.16; }
+h3{ font-size:1.02rem; font-weight:500; letter-spacing:-.01em; }
+
+h1 em{
+  font-style:normal; color:var(--c-build); position:relative;
+  text-shadow:0 0 38px rgba(77,255,168,.32);
+}
+
+/* ═══════════════════ NAV ═════════════════════════════════════════════════ */
+.nav{
+  position:fixed; inset:0 0 auto 0; z-index:40;
+  transition:background .35s var(--ease), border-color .35s var(--ease), backdrop-filter .35s;
+  border-bottom:1px solid transparent;
+}
+.nav.is-stuck{
+  background:rgba(6,8,11,.78); border-bottom-color:var(--line);
+  backdrop-filter:blur(14px) saturate(140%);
+  -webkit-backdrop-filter:blur(14px) saturate(140%);
+}
+.nav__in{ display:flex; align-items:center; gap:1.4rem; height:66px; }
+
+.mark{ display:flex; align-items:center; gap:.6rem; text-decoration:none; color:var(--ink); flex:0 0 auto; }
+.mark svg{ color:var(--c-build); }
+.mark__txt{
+  font-family:var(--f-disp); font-weight:500; font-size:.9rem; letter-spacing:.16em;
+}
+
+.nav__links{ display:flex; gap:1.6rem; margin-inline:auto; }
+.nav__links a{
+  font-family:var(--f-mono); font-size:.7rem; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--ink-2); text-decoration:none; position:relative; padding-block:.35rem;
+  transition:color .25s var(--ease);
+}
+.nav__links a::after{
+  content:""; position:absolute; left:0; bottom:0; height:1px; width:0;
+  background:var(--c-build); transition:width .3s var(--ease);
+}
+.nav__links a:hover{ color:var(--ink); }
+.nav__links a:hover::after{ width:100%; }
+
+.nav__right{ display:flex; align-items:center; gap:.85rem; flex:0 0 auto; }
+
+/* ── переключатель языка ─────────────────────────────────────────────── */
+.lang{ display:flex; border:1px solid var(--line); }
+.lang__btn{
+  font-size:.66rem; letter-spacing:.1em; padding:.42rem .62rem;
+  background:transparent; border:0; color:var(--ink-3); cursor:pointer;
+  transition:color .22s var(--ease), background .22s var(--ease);
+  /* палец должен попадать: 44px — минимум для касания */
+  min-height:44px; min-width:44px;
+}
+.lang__btn + .lang__btn{ border-left:1px solid var(--line); }
+.lang__btn:hover{ color:var(--ink); }
+.lang__btn[aria-pressed="true"]{ background:rgba(77,255,168,.12); color:var(--c-build); }
+
+.chip{
+  display:inline-flex; align-items:center; gap:.5rem;
+  border:1px solid var(--line); border-radius:100px; padding:.34rem .72rem;
+  color:var(--ink-2); background:rgba(13,19,26,.55);
+}
+.led{
+  width:6px; height:6px; border-radius:50%; background:var(--c-build); flex:0 0 auto;
+  box-shadow:0 0 0 0 rgba(77,255,168,.55); animation:blip 2.6s var(--ease) infinite;
+}
+.led--wait{ background:var(--c-discovery); animation-duration:1.1s; }
+.led--off{ background:var(--ink-3); animation:none; box-shadow:none; }
+@keyframes blip{
+  0%,100%{ box-shadow:0 0 0 0 rgba(77,255,168,.5); }
+  55%    { box-shadow:0 0 0 7px rgba(77,255,168,0); }
+}
+
+/* ── кнопки ───────────────────────────────────────────────────────────── */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+  font-family:var(--f-mono); font-size:.735rem; font-weight:500;
+  letter-spacing:.1em; text-transform:uppercase; text-decoration:none;
+  padding:.92rem 1.5rem; border:1px solid var(--line); background:transparent; color:var(--ink);
+  cursor:pointer; position:relative;
+  transition:color .28s var(--ease), border-color .28s var(--ease), transform .28s var(--ease);
+}
+/* здесь был .btn::before с заливкой снизу: парного правила :hover::before не было,
+   эффект не срабатывал никогда. Удалён вместе с overflow:hidden, который его обслуживал. */
+.btn:hover{ border-color:var(--c-build); transform:translateY(-2px); }
+.btn--sm{ padding:.6rem 1.05rem; font-size:.685rem; }
+
+/* короткая подпись кнопки включается только на узких экранах */
+.btn__short{ display:none; }
+
+.btn--primary{ background:var(--c-build); color:#04140c; border-color:var(--c-build); font-weight:700; }
+.btn--primary:hover{ box-shadow:0 12px 34px -12px rgba(77,255,168,.55); }
+.btn--ghost:hover{ color:var(--c-build); }
+
+/* ═══════════════════ HERO ════════════════════════════════════════════════ */
+.hero{
+  position:relative; min-height:100svh; display:flex; flex-direction:column;
+  justify-content:center; padding-block:104px 60px;
+}
+.hero__grid{
+  display:grid; grid-template-columns:1.06fr .94fr; gap:clamp(2rem,4vw,4.2rem); align-items:center;
+}
+
+/* надпись над заголовком: оставлена по решению владельца */
+.kicker{
+  display:flex; align-items:center; gap:.7rem; margin:0 0 1.6rem;
+  color:var(--c-build);
+}
+.kicker::before{
+  content:""; width:34px; height:1px; background:var(--c-build); opacity:.6;
+}
+
+.lede{ color:var(--ink-2); max-width:53ch; margin:1.5rem 0 0; }
+
+/* подсказка под кнопками: что писать, если ТЗ нет */
+.cta-note{
+  margin:1rem 0 0; max-width:52ch; color:var(--ink-3);
+  font-size:.82rem; line-height:1.55;
+}
+
+/* оговорка к сроку — тише самого срока, но читаемая */
+.rcard__caveat{
+  display:block; margin-top:.4rem; color:var(--ink-3);
+  font-size:.72rem; line-height:1.45;
+}
+
+.hero__cta{ display:flex; flex-wrap:wrap; gap:.75rem; margin-top:1.9rem; }
+
+.hero__meta{
+  display:flex; flex-wrap:wrap; gap:1.2rem 2.4rem; margin:2.2rem 0 0;
+  padding-top:1.3rem; border-top:1px solid var(--line);
+}
+.hero__meta div{ display:flex; flex-direction:column; gap:.35rem; }
+.hero__meta dt{ color:var(--ink-3); }
+.hero__meta dd{ margin:0; font-size:.9rem; color:var(--ink-2); }
+
+/* прицел, следующий за курсором внутри hero */
+.reticle{
+  position:absolute; inset:0; z-index:0; pointer-events:none; opacity:0;
+  transition:opacity .5s var(--ease);
+}
+.reticle.on{ opacity:1; }
+.reticle i{ position:absolute; background:rgba(77,255,168,.16); }
+.reticle i:first-child{ left:0; right:0; height:1px; top:var(--ry,50%); }
+.reticle i:last-child { top:0; bottom:0; width:1px; left:var(--rx,50%); }
+
+/* ── панели ──────────────────────────────────────────────────────────── */
+.panel{
+  position:relative; background:linear-gradient(160deg, rgba(13,19,26,.86), rgba(8,11,15,.9));
+  border:1px solid var(--line); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+}
+.panel::before,.panel::after{
+  content:""; position:absolute; width:9px; height:9px; pointer-events:none;
+  border-color:var(--c-build); opacity:.75;
+}
+.panel::before{ top:-1px; left:-1px; border-top:1px solid; border-left:1px solid; }
+.panel::after { bottom:-1px; right:-1px; border-bottom:1px solid; border-right:1px solid; }
+
+.panel__bar{
+  display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  padding:.85rem 1.1rem; border-bottom:1px solid var(--line); color:var(--ink-3);
+}
+.panel__state{ color:var(--c-build); text-transform:none; letter-spacing:.08em; font-size:.66rem; }
+
+/* правая часть шапки панели: состояние + необязательное действие */
+.panel__barend{ display:flex; align-items:center; gap:.7rem; min-width:0; }
+
+/* сброс Радара: появляется только после выбора сценария */
+.radar__reset{
+  font-size:.62rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-3); background:transparent;
+  border:1px solid var(--line); border-radius:0;
+  padding:.3rem .6rem; cursor:pointer; flex:0 0 auto;
+  transition:color .28s var(--ease), border-color .28s var(--ease);
+}
+.radar__reset:hover{ color:var(--ink); border-color:rgba(233,238,243,.28); }
+.radar__reset[hidden]{ display:none; }
+
+/* ── COCKPIT / pipeline ──────────────────────────────────────────────── */
+.panel--cockpit{ padding-bottom:1.1rem; }
+
+.rail{
+  list-style:none; margin:0; padding:2.6rem 1.35rem 1.9rem;
+  display:grid; grid-template-columns:repeat(5,1fr); gap:.5rem; position:relative;
+}
+.stn{ display:flex; flex-direction:column; align-items:flex-start; gap:.55rem; position:relative; z-index:2; }
+.stn__dot{
+  width:11px; height:11px; border-radius:50%; background:var(--bg-3);
+  border:1px solid rgba(233,238,243,.3);
+  transition:background .4s var(--ease), border-color .4s var(--ease), box-shadow .4s var(--ease);
+}
+.stn__name{ font-size:.64rem; color:var(--ink-2); transition:color .4s var(--ease); }
+.stn__desc{ font-size:.735rem; line-height:1.35; color:var(--ink-3); }
+
+.stn.hot .stn__dot{
+  background:var(--c-build); border-color:var(--c-build);
+  box-shadow:0 0 0 4px rgba(77,255,168,.12), 0 0 16px rgba(77,255,168,.5);
+}
+.stn.hot .stn__name{ color:var(--ink); }
+
+.rail__line{
+  position:absolute; left:1.35rem; right:1.35rem; top:calc(2.6rem + 5px); height:1px;
+  background:linear-gradient(90deg, transparent, var(--line) 8%, var(--line) 92%, transparent);
+  z-index:1;
+}
+.pkt{
+  position:absolute; top:calc(2.6rem + 2px); width:7px; height:7px; border-radius:50%;
+  z-index:1; background:var(--c-build); box-shadow:0 0 10px currentColor;
+  animation:flow 5.2s linear infinite;
+}
+.pkt--1{ color:var(--c-build);  background:var(--c-build);  animation-delay:0s; }
+.pkt--2{ color:var(--c-review); background:var(--c-review); animation-delay:1.75s; }
+.pkt--3{ color:var(--c-delivery); background:var(--c-delivery); animation-delay:3.5s; }
+@keyframes flow{
+  0%  { left:1.35rem; opacity:0; }
+  8%  { opacity:1; }
+  92% { opacity:1; }
+  100%{ left:calc(100% - 1.35rem); opacity:0; }
+}
+
+.cockpit__readout{
+  margin:0 1.35rem; padding-top:1.1rem; border-top:1px solid var(--line-2); min-height:64px;
+}
+.cockpit__hint{ margin:0; color:var(--ink-3); text-transform:none; letter-spacing:.04em; line-height:1.7; font-size:.7rem; }
+.cockpit__hint a{ color:var(--c-build); }
+.cockpit__line{
+  display:flex; gap:.7rem; align-items:baseline; margin:0 0 .45rem;
+  font-family:var(--f-mono); font-size:.7rem; line-height:1.5;
+  opacity:0; transform:translateY(6px); animation:pop .5s var(--ease) forwards;
+}
+.cockpit__line b{ color:var(--ink-3); font-weight:500; letter-spacing:.1em; flex:0 0 74px; text-transform:uppercase; font-size:.62rem; }
+.cockpit__line span{ color:var(--ink-2); }
+@keyframes pop{ to{ opacity:1; transform:none; } }
+
+.scroll-cue{
+  display:flex; align-items:center; gap:.7rem; color:var(--ink-3); text-decoration:none;
+  width:max-content; margin:clamp(2rem,5vh,4rem) auto 0; padding-inline:var(--pad);
+  transition:color .3s var(--ease);
+}
+.scroll-cue:hover{ color:var(--c-build); }
+.scroll-cue i{ width:1px; height:26px; background:linear-gradient(var(--c-build), transparent); animation:drop 2.2s var(--ease) infinite; }
+@keyframes drop{ 0%,100%{ transform:scaleY(.4); opacity:.4; } 50%{ transform:scaleY(1); opacity:1; } }
+
+/* ═══════════════════ SECTIONS ════════════════════════════════════════════ */
+.sec{ padding-block:clamp(4.5rem,10vh,8.5rem); position:relative; }
+.sec + .sec{ border-top:1px solid var(--line-2); }
+
+.sec__head{ margin-bottom:clamp(2.4rem,5vw,4rem); }
+.sec__head--split{
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.85fr);
+  gap:clamp(1.5rem,4vw,4rem); align-items:end;
+}
+.idx{ display:block; color:var(--c-build); margin-bottom:1rem; opacity:.85; }
+.sec__sub{ color:var(--ink-2); margin:0; max-width:56ch; font-size:.97rem; }
+.sec__sub--wide{ margin-top:1.4rem; }
+
+/* ── 01 метод ────────────────────────────────────────────────────────── */
+.method{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.05fr); gap:clamp(2rem,5vw,4.5rem); align-items:start; }
+.method__lead{
+  margin:0; font-size:clamp(1.05rem,1.6vw,1.32rem); line-height:1.55; color:var(--ink);
+  border-left:1px solid var(--c-build); padding-left:clamp(1.1rem,2.5vw,2rem);
+  max-width:64ch;   /* крупный кегль — мера должна быть короче обычной */
+}
+.swap{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1.35rem; }
+.swap li{
+  display:grid; grid-template-columns:1fr auto 1fr; gap:1rem; align-items:center;
+  padding-bottom:1.35rem; border-bottom:1px solid var(--line-2);
+}
+.swap li:last-child{ border-bottom:0; padding-bottom:0; }
+.swap__no{ color:#8794a1; text-decoration:line-through; text-decoration-color:rgba(255,61,154,.6); font-size:.9rem; }
+.swap__arrow{ color:var(--c-build); font-size:.8rem; }
+.swap__yes{ color:var(--ink); font-size:.93rem; }
+
+/* термин объясняется здесь, а не в роли наверху */
+.method__note{
+  margin:1.6rem 0 0; padding-top:1.2rem; border-top:1px solid var(--line-2);
+  color:var(--ink-3); font-size:.85rem; line-height:1.6; max-width:62ch;
+}
+
+.pull{
+  margin:clamp(2.4rem,5vw,3.6rem) 0 0; max-width:44ch; margin-left:auto;
+  font-family:var(--f-disp); font-weight:300; font-size:clamp(1.05rem,1.9vw,1.5rem);
+  line-height:1.4; color:var(--ink); text-align:right;
+  border-right:1px solid var(--c-review); padding-right:clamp(1.1rem,2.5vw,2rem);
+}
+
+/* ── 03 входы ────────────────────────────────────────────────────────── */
+.intake{ list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--line-2); border:1px solid var(--line); }
+.intake li{
+  background:rgba(8,11,15,.5); padding:1.6rem 1.5rem 1.6rem 3.2rem; position:relative;
+  font-size:1rem; color:var(--ink); transition:background .35s var(--ease), color .35s var(--ease);
+}
+.intake li:last-child{ grid-column:1 / -1; }
+.q{
+  position:absolute; left:1.4rem; top:1.15rem; font-family:var(--f-disp); font-size:1.7rem;
+  color:var(--c-review); opacity:.55; line-height:1;
+}
+.intake li:hover{ background:rgba(255,61,154,.05); }
+
+/* ── 05 build radar ──────────────────────────────────────────────────── */
+.radar{ display:grid; gap:1.4rem; }
+.radar__pick{ display:flex; flex-wrap:wrap; gap:.55rem; }
+.pick{
+  font-family:var(--f-mono); font-size:.72rem; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--ink-2); background:transparent; border:1px solid var(--line);
+  padding:.85rem 1.15rem; min-height:44px; cursor:pointer;
+  transition:border-color .28s var(--ease), color .28s var(--ease), background .28s var(--ease);
+}
+.pick:hover{ color:var(--ink); border-color:rgba(233,238,243,.28); }
+.pick[aria-selected="true"]{ color:#04140c; background:var(--c-build); border-color:var(--c-build); font-weight:700; }
+
+.radar__out{ min-height:340px; }
+.radar__empty{ padding:clamp(2.4rem,6vw,4.4rem) 1.4rem; text-align:center; color:var(--ink-3); }
+/* мера читаемости: без предела строка в пустой панели доходила до 95 знаков */
+.radar__empty p{ margin:0 auto; max-width:56ch; font-size:.95rem; line-height:1.8; }
+
+.radar__body{ padding:1.6rem 1.4rem 1.4rem; }
+.radar__title{
+  font-size:clamp(1.3rem,2.6vw,1.95rem); font-weight:300; margin:0 0 1.5rem; color:var(--ink);
+}
+.radar__modes{ display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--line-2); border:1px solid var(--line-2); }
+.rmode{ background:rgba(6,8,11,.5); padding:1.15rem 1.2rem; display:flex; flex-direction:column; gap:.55rem; }
+.rmode__tag{ font-size:.6rem; }
+.rmode p{ margin:0; font-size:.9rem; color:var(--ink-2); line-height:1.5; }
+.rmode[data-mode="product"]  .rmode__tag{ color:var(--c-build); }
+.rmode[data-mode="quality"]  .rmode__tag{ color:var(--c-review); }
+.rmode[data-mode="infra"]    .rmode__tag{ color:var(--c-discovery); }
+.rmode[data-mode="delivery"] .rmode__tag{ color:var(--c-delivery); }
+
+.radar__foot{ display:grid; grid-template-columns:1fr 1fr; gap:1.1rem; margin-top:1.1rem; }
+.rcard{ border:1px solid var(--line); padding:1.15rem 1.2rem; display:flex; flex-direction:column; gap:.6rem; }
+.rcard__tag{ font-size:.6rem; color:var(--ink-3); }
+.rcard p{ margin:0; font-size:.93rem; line-height:1.5; }
+.rcard--risk{ border-left:1px solid var(--c-delivery); }
+.rcard--risk p{ color:var(--ink-2); }
+.rcard--out{ border-left:1px solid var(--c-build); }
+.rcard__meta{ color:var(--c-build); font-size:.62rem; margin-top:auto; padding-top:.4rem; }
+
+.fade-swap{ animation:fadeSwap .42s var(--ease); }
+@keyframes fadeSwap{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+
+/* ── услуги: проблема → решение → результат → пример ─────────────────── */
+.services{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line-2); border:1px solid var(--line); }
+.service{ border:0; padding:0; display:flex; flex-direction:column; }
+.service::before,.service::after{ display:none; }
+.service h3{ padding:1.2rem 1.3rem .2rem; }
+.service__rows{ margin:0; padding:1rem 1.3rem 1.4rem; display:flex; flex-direction:column; gap:.9rem; }
+.service__rows > div + div{ padding-top:.9rem; border-top:1px solid var(--line-2); }
+.service__rows dt{ color:var(--c-build); font-size:.6rem; margin-bottom:.3rem; }
+/* между 620 и 1080px карточки идут в одну колонку на всю ширину оболочки,
+   и строка доходила до 103 знаков. Мера читаемости — 65–75. */
+.service__rows dd{ margin:0; color:var(--ink-2); font-size:.88rem; line-height:1.5; max-width:68ch; }
+.service:nth-child(2) .service__rows dt{ color:var(--c-review); }
+.service:nth-child(2) .led{ background:var(--c-review); box-shadow:none; animation:none; }
+.service:nth-child(3) .service__rows dt{ color:var(--c-discovery); }
+.service:nth-child(3) .led{ background:var(--c-discovery); box-shadow:none; animation:none; }
+
+.services__note{
+  margin:1.6rem 0 0; max-width:70ch; color:var(--ink-3);
+  font-size:.88rem; line-height:1.6;
+}
+
+/* кнопка внутри выбранного сценария радара */
+.radar__cta{ margin:1.2rem 1.4rem 1.4rem; align-self:flex-start; }
+
+@media (max-width:1080px){ .services{ grid-template-columns:1fr; } }
+
+/* ── 05 задача → результат ───────────────────────────────────────────── */
+.cases{ display:flex; flex-direction:column; gap:1.1rem; }
+
+.case__rows{
+  margin:0; padding:1.5rem 1.4rem; display:flex; flex-direction:column; gap:1.15rem;
+}
+.case__rows > div{
+  display:grid; grid-template-columns:150px 1fr; gap:1.2rem; align-items:baseline;
+}
+.case__rows > div + div{ padding-top:1.15rem; border-top:1px solid var(--line-2); }
+.case__rows dt{ color:var(--c-build); font-size:.62rem; }
+/* без ограничения строка на широком экране разъезжается до ~80 символов */
+.case__rows dd{ margin:0; color:var(--ink); font-size:.97rem; line-height:1.55; max-width:68ch; }
+
+.sec--proof .sec__sub--wide{ color:var(--ink-3); font-size:.88rem; }
+
+@media (max-width:620px){
+  .case__rows > div{ grid-template-columns:1fr; gap:.35rem; }
+  /* на узком экране номер кейса и его статус встают в две строки, а не жмутся в одну */
+  .case .panel__bar{ flex-direction:column; align-items:flex-start; gap:.3rem; }
+}
+
+
+/* ── 07 CTA ──────────────────────────────────────────────────────────── */
+.sec--cta{ padding-block:clamp(5rem,12vh,9rem); }
+.cta{ max-width:70ch; }
+.cta p{ color:var(--ink-2); margin:1.5rem 0 0; max-width:56ch; }
+.cta__row{ display:flex; flex-wrap:wrap; gap:.75rem; margin-top:2.3rem; }
+
+/* запасной путь к контакту: адрес виден и выделяется, даже если mailto не сработает */
+.cta__direct{
+  display:flex; flex-wrap:wrap; align-items:center; gap:.5rem 1.1rem;
+  margin:1.1rem 0 0; color:var(--ink-3); font-size:.82rem;
+}
+.cta__direct .mono{ font-size:.62rem; color:var(--ink-3); }
+/* адрес почты — обычный текст, а не ссылка: выделяется и копируется без помех */
+.cta__addr{ color:var(--ink-2); }
+.cta__addr--link{
+  text-decoration:none; border-bottom:1px solid var(--line);
+  transition:color .25s var(--ease), border-color .25s var(--ease);
+}
+.cta__addr--link:hover{ color:var(--c-build); border-color:var(--c-build); }
+.cta__steps{
+  list-style:none; margin:3.2rem 0 0; padding:1.6rem 0 0; border-top:1px solid var(--line);
+  display:flex; flex-direction:column; gap:.9rem;
+}
+.cta__steps li{ display:flex; gap:.9rem; color:var(--ink-2); font-size:.75rem; letter-spacing:.04em; text-transform:none; }
+/* только номер шага: вторым span идёт переводимый текст, ему нужно переноситься */
+.cta__steps span:first-child{ color:var(--c-build); flex:0 0 auto; }
+.cta__steps span + span{ min-width:0; }
+
+/* ── footer ──────────────────────────────────────────────────────────── */
+.foot{ border-top:1px solid var(--line); padding-block:1.7rem; }
+.foot__in{ display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; color:var(--ink-3); font-size:.63rem; }
+
+/* ── появление секций ────────────────────────────────────────────────── */
+.rise{ opacity:0; transform:translateY(14px); animation:rise .8s var(--ease) forwards; animation-delay:var(--d,0ms); }
+@keyframes rise{ to{ opacity:1; transform:none; } }
+
+.reveal{ opacity:0; transform:translateY(22px); transition:opacity .85s var(--ease), transform .85s var(--ease); }
+.reveal.in{ opacity:1; transform:none; }
+.reveal:nth-child(2){ transition-delay:.07s; }
+.reveal:nth-child(3){ transition-delay:.14s; }
+
+/* ═══════════════════ RESPONSIVE ══════════════════════════════════════════ */
+@media (max-width:1080px){
+  .hero__grid{ grid-template-columns:1fr; gap:3rem; }
+  .method{ grid-template-columns:1fr; }
+  .pulse__grid{ grid-template-columns:1fr; }
+  .sec__head--split{ grid-template-columns:1fr; align-items:start; }
+  .pull{ text-align:left; border-right:0; padding-right:0; margin-left:0;
+         border-left:1px solid var(--c-review); padding-left:1.4rem; }
+}
+
+@media (max-width:860px){
+  .nav__links{ display:none; }
+  .nav__right .chip{ display:none; }
+  .nav__in{ justify-content:space-between; gap:.7rem; }
+  /* переключатель языка остаётся — он нужнее, чем статус-чип */
+  .lang__btn{ padding:.4rem .55rem; }
+
+  /* шапка не влезает целиком: логотип + языки + кнопка.
+     Кнопку не прячем (постоянный CTA важен), а сокращаем подпись. */
+  .btn__full{ display:none; }
+  .btn__short{ display:inline; }
+  .mark__txt{ font-size:.8rem; letter-spacing:.12em; }
+  .nav__right{ gap:.55rem; }
+  .btn--sm{ padding:.55rem .8rem; font-size:.63rem; }
+
+  .intake{ grid-template-columns:1fr; }
+  .intake li:last-child{ grid-column:auto; }
+
+  .radar__modes{ grid-template-columns:1fr; }
+  .radar__foot{ grid-template-columns:1fr; }
+
+  .swap li{ grid-template-columns:1fr; gap:.4rem; }
+  .swap__arrow{ display:none; }
+  .swap__yes{ padding-left:1.1rem; border-left:1px solid var(--c-build); }
+}
+
+@media (max-width:620px){
+
+  /* зоны касания не меньше 44px по высоте */
+  .mark{ min-height:44px; }
+  .scroll-cue{ min-height:44px; align-items:center; }
+  .radar__reset{ min-height:44px; padding-inline:.8rem; }
+  .cta__direct{ gap:.4rem .7rem; }
+  .cta__direct .cta__addr{ display:inline-flex; align-items:center; min-height:44px; }
+
+  /* конвейер разворачивается вертикально */
+  .rail{ grid-template-columns:1fr; gap:1.5rem; padding:1.8rem 1.35rem; }
+  .stn{ flex-direction:row; align-items:baseline; gap:.85rem; padding-left:1.6rem; }
+  .stn__dot{ position:absolute; left:0; top:.35rem; }
+  /* 68px, а не 52: русские подписи этапов («ПРОВЕРКА») длиннее английских */
+  .stn__name{ flex:0 0 68px; }
+  .rail__line{
+    left:calc(1.35rem + 5px); top:1.8rem; bottom:1.8rem; right:auto; height:auto; width:1px;
+    background:linear-gradient(180deg, transparent, var(--line) 8%, var(--line) 92%, transparent);
+  }
+  .pkt{ left:calc(1.35rem + 2px); top:1.8rem; animation-name:flowV; }
+  @keyframes flowV{
+    0%  { top:1.8rem; opacity:0; }
+    8%  { opacity:1; }
+    92% { opacity:1; }
+    100%{ top:calc(100% - 1.8rem); opacity:0; }
+  }
+
+  .hero{ padding-block:100px 72px; }
+  .hero__meta{ gap:1.2rem 1.8rem; }
+  .lede{ font-size:.94rem; }
+  .hero__cta .btn{ flex:1 1 100%; }
+  .btn{ padding:.85rem 1.2rem; }
+  .cta__row .btn{ flex:1 1 auto; }
+}
+
+/* ═══════════════════ MOTION / CONTRAST ═══════════════════════════════════ */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important; animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+  }
+  .rise,.reveal{ opacity:1 !important; transform:none !important; }
+  .pkt{ display:none; }
+  #field{ opacity:.4; }
+}
+
+@media (prefers-contrast:more){
+  :root{ --ink-2:#cfd8e0; --ink-3:#9aa7b4; --line:rgba(233,238,243,.24); }
+}
+
+@media print{
+  #field,.grain,.vignette,.nav,.reticle{ display:none !important; }
+  body{ background:#fff; color:#000; }
+}

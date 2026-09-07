@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- статические значения = английский словарь; i18n.js перезаписывает их при смене языка.
+     Соцсети и краулеры читают именно эту разметку, поэтому она обязана совпадать. -->
+<title>Gadzha — AI Product Builder: automations, internal services and AI prototypes</title>
+<meta name="description" content="I build automations, internal services and AI prototypes for small companies and product teams. One clearly scoped first version: I map the process, ship something that works and name its limits — no spec, no hire.">
+<meta name="theme-color" content="#06080b">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Gadzha — AI Product Builder">
+<meta property="og:description" content="I build automations, internal services and AI prototypes.">
+<meta property="og:locale" content="en_US">
+
+<!-- обе языковые версии — один документ, язык переключается на месте -->
+<link rel="alternate" hreflang="ru" href="?lang=ru">
+<link rel="alternate" hreflang="en" href="?lang=en">
+<link rel="alternate" hreflang="x-default" href="?lang=en">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2306080b'/%3E%3Cpath d='M7 20h6l6-8h6' stroke='%234DFFA8' stroke-width='2.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='24' cy='12' r='3' fill='%23FF3D9A'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Unbounded: только 300 и 500. Вес 800 грузился и нигде не использовался. -->
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Unbounded:wght@300;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css?v=42">
+</head>
+<body>
+
+<!-- ambient signal field: поле сигналов; состав цветов задаёт выбор в Build Radar -->
+<canvas id="field" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+
+<a class="skip" href="#main" data-i18n="a11y.skip">Skip to content</a>
+
+<header class="nav" id="nav">
+  <div class="shell nav__in">
+    <a class="mark" href="#top" data-i18n-aria="a11y.home" aria-label="Gadzha — back to top">
+      <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
+        <rect x="1" y="1" width="30" height="30" rx="8" fill="none" stroke="currentColor" stroke-opacity=".35"/>
+        <path d="M7 21h6l6-9h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="24.5" cy="12" r="2.6" fill="var(--c-review)"/>
+      </svg>
+      <span class="mark__txt">GADZHA</span>
+    </a>
+
+    <nav class="nav__links" data-i18n-aria="a11y.sections" aria-label="Page sections">
+      <a href="#intake" data-i18n="nav.intake">What to bring</a>
+      <a href="#services" data-i18n="nav.services">What I build</a>
+      <a href="#radar"  data-i18n="nav.radar">Breakdown</a>
+      <a href="#proof"  data-i18n="nav.proof">Built</a>
+    </nav>
+
+    <div class="nav__right">
+      <span class="chip" id="navStatus">
+        <i class="led" aria-hidden="true"></i>
+        <span class="mono" data-i18n="nav.status">open to work</span>
+      </span>
+
+      <div class="lang" role="group" data-i18n-aria="a11y.langGroup" aria-label="Page language">
+        <button class="lang__btn mono" type="button" data-lang="ru" aria-pressed="true">RU</button>
+        <button class="lang__btn mono" type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+
+      <a class="btn btn--sm" href="#contact">
+        <span class="btn__full" data-i18n="nav.cta">Describe a task</span>
+        <span class="btn__short" data-i18n="nav.ctaShort">Contact</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ══════════════════════════════ 00 · HERO / COCKPIT ══════════════════════════ -->
+<section class="hero" id="top">
+  <div class="reticle" id="reticle" aria-hidden="true"><i></i><i></i></div>
+
+  <div class="shell hero__grid">
+
+    <div class="hero__copy">
+      <!-- Надпись над заголовком — решение владельца. Craft-floor из Impeccable
+           считает такой ярлык запрещённым по умолчанию; здесь он оставлен намеренно. -->
+      <p class="kicker rise" style="--d:0ms">
+        <span class="mono" data-i18n="hero.kicker1">AI PRODUCT BUILDER</span>
+      </p>
+
+      <h1 class="rise" style="--d:70ms" data-i18n-html="hero.h1">I build <em>automations, internal services and AI prototypes</em>.</h1>
+
+      <p class="lede rise" style="--d:150ms" data-i18n="hero.lede">For small companies and product teams. I map the process, build the first working version, and name its limits — no spec, no hire.</p>
+
+      <div class="hero__cta rise" style="--d:220ms">
+        <a class="btn btn--primary" href="#contact" data-i18n="hero.ctaPrimary">Describe your process or idea</a>
+        <a class="btn btn--ghost" href="#radar" data-i18n="hero.ctaGhost">See how the work is scoped</a>
+      </div>
+
+      <p class="cta-note rise" style="--d:250ms" data-i18n="hero.ctaNote">A task in any form is enough to start — a voice note works.</p>
+
+      <dl class="hero__meta rise" style="--d:300ms">
+        <div>
+          <dt class="mono" data-i18n="hero.metaBuiltLabel">shipped</dt>
+          <dd data-i18n="hero.metaBuilt">web interfaces · AI tools · trading indicators · product specs</dd>
+        </div>
+        <div>
+          <dt class="mono" data-i18n="hero.metaFormatLabel">format</dt>
+          <dd data-i18n="hero.metaFormat">in iterations, each with its own scope and deadline</dd>
+        </div>
+        <!-- строка «вход: задача в любом виде» снята: предложение прямо над списком
+             («No spec needed. Just describe…») говорит ровно это же. -->
+      </dl>
+    </div>
+
+    <!-- ── COCKPIT: конвейер сборки ── -->
+    <div class="cockpit rise" style="--d:180ms" aria-labelledby="cockpitTitle">
+      <div class="panel panel--cockpit">
+        <div class="panel__bar">
+          <span class="mono" id="cockpitTitle" data-i18n="cockpit.title">HOW THE WORK MOVES</span>
+          <span class="mono panel__state" id="cockpitState" data-i18n="cockpit.idle">no scenario picked yet</span>
+        </div>
+
+        <ol class="rail" id="rail">
+          <li class="stn" data-stn="input">
+            <span class="stn__dot" aria-hidden="true"></span>
+            <span class="stn__name mono" data-i18n="cockpit.nm.input">TASK</span>
+            <span class="stn__desc" data-i18n="cockpit.st.input">the task as it is</span>
+          </li>
+          <li class="stn" data-stn="frame">
+            <span class="stn__dot" aria-hidden="true"></span>
+            <span class="stn__name mono" data-i18n="cockpit.nm.frame">SCOPE</span>
+            <span class="stn__desc" data-i18n="cockpit.st.frame">scope and boundaries</span>
+          </li>
+          <li class="stn" data-stn="build">
+            <span class="stn__dot" aria-hidden="true"></span>
+            <span class="stn__name mono" data-i18n="cockpit.nm.build">BUILD</span>
+            <span class="stn__desc" data-i18n="cockpit.st.build">code and interface</span>
+          </li>
+          <li class="stn" data-stn="test">
+            <span class="stn__dot" aria-hidden="true"></span>
+            <span class="stn__name mono" data-i18n="cockpit.nm.test">CHECK</span>
+            <span class="stn__desc" data-i18n="cockpit.st.test">weak points</span>
+          </li>
+          <li class="stn" data-stn="ship">
+            <span class="stn__dot" aria-hidden="true"></span>
+            <span class="stn__name mono" data-i18n="cockpit.nm.ship">LAUNCH</span>
+            <span class="stn__desc" data-i18n="cockpit.st.ship">a working link</span>
+          </li>
+
+          <span class="rail__line" aria-hidden="true"></span>
+          <span class="pkt pkt--1" aria-hidden="true"></span>
+          <span class="pkt pkt--2" aria-hidden="true"></span>
+          <span class="pkt pkt--3" aria-hidden="true"></span>
+        </ol>
+
+        <div class="cockpit__readout" id="cockpitReadout">
+          <p class="mono cockpit__hint" data-i18n-html="cockpit.hint">Pick a scenario in the <a href="#radar">Breakdown</a>, and the stages rebuild around it.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <a class="scroll-cue mono" href="#intake" data-i18n-aria="a11y.scroll" aria-label="Scroll down">
+    <span data-i18n="hero.scrollCue">what people bring me</span>
+    <i aria-hidden="true"></i>
+  </a>
+</section>
+
+<!-- ══════════════════════════════ 01 · С ЧЕМ МОЖНО ПРИЙТИ ════════════════════ -->
+<section class="sec sec--intake" id="intake">
+  <div class="shell">
+    <header class="sec__head">
+      <span class="idx mono">[ 01 ]</span>
+      <!-- значение содержит <br>, поэтому только data-i18n-html -->
+      <h2 data-i18n-html="intake.h2">I step in when a process or an idea<br>runs into manual work.</h2>
+      <p class="sec__sub sec__sub--wide" data-i18n="intake.sub">Four ways these conversations usually start:</p>
+    </header>
+
+    <ul class="intake">
+      <li><span class="q" aria-hidden="true">“</span><span data-i18n="intake.i1">We move data between systems by hand, and we catch mistakes late.</span></li>
+      <li><span class="q" aria-hidden="true">“</span><span data-i18n="intake.i2">We need a small internal tool, but the product always comes first.</span></li>
+      <li><span class="q" aria-hidden="true">“</span><span data-i18n="intake.i3">We need to know if AI helps on real work, not just in a demo.</span></li>
+      <li><span class="q" aria-hidden="true">“</span><span data-i18n="intake.i4">We want to test the idea before committing budget and a team.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════════════════════════ 02 · ЧТО МОГУ СОБРАТЬ ══════════════════════ -->
+<section class="sec sec--services" id="services">
+  <div class="shell">
+    <header class="sec__head sec__head--split">
+      <div>
+        <span class="idx mono">[ 02 ]</span>
+        <h2 data-i18n="services.h2">What I can build first</h2>
+      </div>
+      <p class="sec__sub" data-i18n="services.sub">Three places the work usually starts. Each is a scoped first version — not an open-ended project.</p>
+    </header>
+
+    <div class="services">
+      <article class="panel service">
+        <div class="panel__bar"><span class="mono" data-i18n="services.bar1">01 / DIRECTION</span><i class="led" aria-hidden="true"></i></div>
+        <h3 data-i18n="services.s1h">Automation and integrations</h3>
+        <dl class="service__rows">
+          <div><dt class="mono" data-i18n="services.lblProblem">Problem</dt><dd data-i18n="services.s1p">Repeated actions, data moved by hand, lost requests, no visibility on failure.</dd></div>
+          <div><dt class="mono" data-i18n="services.lblSolution">Approach</dt><dd data-i18n="services.s1s">I connect the services and build a job with a log, an alert, and an off switch.</dd></div>
+          <div><dt class="mono" data-i18n="services.lblResult">Result</dt><dd data-i18n="services.s1r">The operation repeats without manual work, and failures are visible.</dd></div>
+        </dl>
+      </article>
+      <article class="panel service">
+        <div class="panel__bar"><span class="mono" data-i18n="services.bar2">02 / DIRECTION</span><i class="led" aria-hidden="true"></i></div>
+        <h3 data-i18n="services.s2h">An internal tool for one team</h3>
+        <dl class="service__rows">
+          <div><dt class="mono" data-i18n="services.lblProblem">Problem</dt><dd data-i18n="services.s2p">The process lives in spreadsheets, DMs, and a few disconnected services.</dd></div>
+          <div><dt class="mono" data-i18n="services.lblSolution">Approach</dt><dd data-i18n="services.s2s">A small web tool around one scenario, tested on real, messy data.</dd></div>
+          <div><dt class="mono" data-i18n="services.lblResult">Result</dt><dd data-i18n="services.s2r">One clear place to work, a short guide, a named owner.</dd></div>
+        </dl>
+      </article>
+      <article class="panel service">
+        <div class="panel__bar"><span class="mono" data-i18n="services.bar3">03 / DIRECTION</span><i class="led" aria-hidden="true"></i></div>
+        <h3 data-i18n="services.s3h">An AI pilot or product prototype</h3>
+        <dl class="service__rows">
+          <div><dt class="mono" data-i18n="services.lblProblem">Problem</dt><dd data-i18n="services.s3p">An AI feature idea, but the benefit, the cost, and the bad-answer case are all unclear.</dd></div>
+          <div><dt class="mono" data-i18n="services.lblSolution">Approach</dt><dd data-i18n="services.s3s">One scenario on a real API, with limits set and a person in the review step.</dd></div>
+          <div><dt class="mono" data-i18n="services.lblResult">Result</dt><dd data-i18n="services.s3r">A clickable first version and an honest list of limits — enough to decide.</dd></div>
+        </dl>
+      </article>
+    </div>
+
+    <p class="services__note" data-i18n="services.note">If a landing or web page is needed to run the test, it’s part of that first version.</p>
+  </div>
+</section>
+
+
+
+<!-- ══════════════════════════════ 04 · РАЗБОР ЗАДАЧИ ═════════════════════════ -->
+<section class="sec sec--radar" id="radar">
+  <div class="shell">
+    <header class="sec__head">
+      <!-- был «[ 03 ] · BUILD RADAR»: единственный индекс с английским хвостом,
+           который не переводился. Название раздела несут заголовок и шапка панели.
+           sec__head--split снят вместе с radar.sub — заголовок теперь одиночный. -->
+      <span class="idx mono">[ 03 ]</span>
+      <h2 data-i18n-html="radar.h2">Pick a scenario — I’ll show where we start<br>and which risk I check first.</h2>
+    </header>
+
+    <div class="radar">
+      <div class="radar__pick" role="tablist" data-i18n-aria="a11y.taskType" aria-label="Type of work">
+        <button class="pick" role="tab" id="tab-proto"   aria-controls="radarOut" aria-selected="false" data-key="proto"   data-i18n="radar.btnProto">AI prototype</button>
+        <button class="pick" role="tab" id="tab-landing" aria-controls="radarOut" aria-selected="false" data-key="landing" data-i18n="radar.btnLanding">Landing page</button>
+        <button class="pick" role="tab" id="tab-tool"    aria-controls="radarOut" aria-selected="false" data-key="tool"    data-i18n="radar.btnTool">Internal tool</button>
+        <button class="pick" role="tab" id="tab-feature" aria-controls="radarOut" aria-selected="false" data-key="feature" data-i18n="radar.btnFeature">Feature</button>
+        <button class="pick" role="tab" id="tab-auto"    aria-controls="radarOut" aria-selected="false" data-key="auto"    data-i18n="radar.btnAuto">Automation</button>
+        <button class="pick" role="tab" id="tab-adopt"    aria-controls="radarOut" aria-selected="false" data-key="adopt"    data-i18n="radar.btnAdopt">AI adoption</button>
+      </div>
+
+      <div class="panel radar__out" id="radarOut" role="tabpanel" tabindex="0" aria-live="polite">
+        <div class="panel__bar">
+          <span class="mono" data-i18n="radar.bar">TASK BREAKDOWN</span>
+          <span class="panel__barend">
+            <span class="mono panel__state" id="radarState" data-i18n="radar.state">no scenario picked</span>
+            <!-- появляется только когда сценарий выбран: возврат к пустому состоянию -->
+            <button class="mono radar__reset" id="radarReset" type="button" hidden
+                    data-i18n="radar.reset" data-i18n-aria="radar.resetAria"
+                    aria-label="Clear the breakdown">Clear</button>
+          </span>
+        </div>
+
+        <div class="radar__empty" id="radarEmpty">
+          <p data-i18n-html="radar.empty">Six scenarios, six ways to build.<br>Pick the closest to see scope, risk and timing.</p>
+        </div>
+
+        <div class="radar__body" id="radarBody" hidden>
+          <h3 class="radar__title" id="radarTitle"></h3>
+
+          <div class="radar__modes">
+            <div class="rmode" data-mode="product">
+              <span class="rmode__tag mono" data-i18n="radar.mode1">SCOPE</span>
+              <p id="rProduct"></p>
+            </div>
+            <div class="rmode" data-mode="quality">
+              <span class="rmode__tag mono" data-i18n="radar.mode2">BUILD</span>
+              <p id="rQuality"></p>
+            </div>
+            <div class="rmode" data-mode="infra">
+              <span class="rmode__tag mono" data-i18n="radar.mode3">CHECK</span>
+              <p id="rInfra"></p>
+            </div>
+            <div class="rmode" data-mode="delivery">
+              <span class="rmode__tag mono" data-i18n="radar.mode4">HANDOVER</span>
+              <p id="rDelivery"></p>
+            </div>
+          </div>
+
+          <div class="radar__foot">
+            <div class="rcard rcard--risk">
+              <span class="mono rcard__tag" data-i18n="radar.tagRisk">THE RISK I CHECK FIRST</span>
+              <p id="rRisk"></p>
+            </div>
+            <div class="rcard rcard--out">
+              <span class="mono rcard__tag" data-i18n="radar.tagFirst">FIRST RESULT</span>
+              <p id="rFirst"></p>
+              <span class="mono rcard__meta" id="rHorizon"></span>
+              <!-- снимает вид гарантии: срок — ориентир, а не обязательство -->
+              <span class="rcard__caveat" data-i18n="radar.horizonNote">An estimate, refined after a short review: it depends on access, data and the scope of the first version.</span>
+            </div>
+          </div>
+
+            <a class="btn btn--primary radar__cta" href="#contact" data-i18n="radar.scenarioCta">Discuss this scenario</a>
+          </div>
+        </div>
+      </div>
+
+    <p class="pull" data-i18n="radar.pull">Every breakdown ends with a concrete first result, not a mockup and not a deck.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════ 05 · ЗАДАЧА → РЕЗУЛЬТАТ ════════════════════ -->
+<section class="sec sec--proof" id="proof">
+  <div class="shell">
+    <header class="sec__head sec__head--split">
+      <div>
+        <span class="idx mono">[ 04 ]</span>
+        <h2 data-i18n="proof.h2">Things I’ve built</h2>
+      </div>
+      <p class="sec__sub" data-i18n="proof.sub">My own projects — no invented client results. For each: the task, what got built, what changed.</p>
+    </header>
+
+    <div class="cases">
+
+      <article class="panel case">
+        <div class="panel__bar">
+          <span class="mono" data-i18n="proof.c1bar">OWN PROJECT · THIS SITE</span>
+          <span class="mono panel__state" data-i18n="proof.c1state">open right now</span>
+        </div>
+        <dl class="case__rows">
+          <div>
+            <dt class="mono" data-i18n="proof.lblCame">The task</dt>
+            <dd data-i18n="proof.c1came">a personal site that doesn’t look like a template and proves the method by existing.</dd>
+          </div>
+          <div>
+            <dt class="mono" data-i18n="proof.lblBuilt">What got built</dt>
+            <!-- срок: первая рабочая версия собрана за один день.
+                 ВАЖНО: здесь нельзя упоминать GitHub — секция Live Build Pulse снята. -->
+            <dd data-i18n="proof.c1built">this page, in one day: an interactive breakdown, a build pipeline, a reactive particle field. Vanilla JS, no build step, two languages from one dictionary.</dd>
+          </div>
+          <div>
+            <dt class="mono" data-i18n="proof.lblOutcome">Outcome</dt>
+            <dd data-i18n="proof.c1outcome">a working page instead of a portfolio: you can open it, not just hear about it.</dd>
+          </div>
+        </dl>
+      </article>
+
+      <article class="panel case">
+        <div class="panel__bar">
+          <span class="mono" data-i18n="proof.c2bar">RESEARCH PROJECT · MONEYFORESIGHT</span>
+          <span class="mono panel__state" data-i18n="proof.c2state">manual analysis, automated</span>
+        </div>
+        <dl class="case__rows">
+          <div>
+            <dt class="mono" data-i18n="proof.lblCame">The task</dt>
+            <dd data-i18n="proof.c2came">manual analysis: five indicators each read on its own, with no way to check whether the combination works.</dd>
+          </div>
+          <div>
+            <dt class="mono" data-i18n="proof.lblBuilt">What got built</dt>
+            <!-- дисклеймер («not an investment product…») обязателен и в статичном фолбэке — теперь внутри c2built -->
+            <dd data-i18n="proof.c2built">one indicator merges five modules into a single picture; a separate Python backtest reproduces the logic and runs it over history. Pine + Python, public Binance data, MPL 2.0 attribution. A research project, not an investment product and not financial advice.</dd>
+          </div>
+          <div>
+            <dt class="mono" data-i18n="proof.lblOutcome">Outcome</dt>
+            <dd data-i18n="proof.c2outcome">a testable calculation and a backtest that can disprove a hypothesis, not flatter it.</dd>
+          </div>
+        </dl>
+      </article>
+
+      <article class="panel case">
+        <div class="panel__bar">
+          <span class="mono" data-i18n="proof.c3bar">PRODUCT WORK · LUMINARY</span>
+          <span class="mono panel__state" data-i18n="proof.c3state">research before development</span>
+        </div>
+        <dl class="case__rows">
+          <div>
+            <dt class="mono" data-i18n="proof.lblCame">The task</dt>
+            <dd data-i18n="proof.c3came">an app about memory and loss — where getting the tone wrong costs more than getting the code wrong.</dd>
+          </div>
+          <div>
+            <dt class="mono" data-i18n="proof.lblBuilt">What got built</dt>
+            <dd data-i18n="proof.c3built">a product spec and first-session script with the boundaries spelled out: what we do, what we never do, and why.</dd>
+          </div>
+          <div>
+            <dt class="mono" data-i18n="proof.lblOutcome">Outcome</dt>
+            <dd data-i18n="proof.c3outcome">a spec you can build from, and an explicit list of what must not be built. If a project shouldn’t be done, you hear it before the invoice.</dd>
+          </div>
+        </dl>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ МЕТОД ══════════════════════════════════ -->
+<section class="sec sec--method" id="method">
+  <div class="shell">
+    <header class="sec__head">
+      <span class="idx mono">[ 05 ]</span>
+      <h2 data-i18n-html="method.h2">How I work:<br>a working piece first.</h2>
+    </header>
+
+    <div class="method">
+      <p class="method__lead" data-i18n="method.lead">A working piece first, everything else after. It’s the fastest way to find the direction and decide on facts, not slides.</p>
+
+      <ul class="swap">
+        <li>
+          <span class="swap__no" data-i18n="method.no1">“Let’s make it look good”</span>
+          <span class="swap__arrow mono" aria-hidden="true">→</span>
+          <span class="swap__yes" data-i18n="method.yes1">“Let’s make something we can show and test”</span>
+        </li>
+        <li>
+          <span class="swap__no" data-i18n="method.no2">“First a twenty-page spec”</span>
+          <span class="swap__arrow mono" aria-hidden="true">→</span>
+          <span class="swap__yes" data-i18n="method.yes2">“First a working piece, then a spec grounded in facts”</span>
+        </li>
+        <li>
+          <span class="swap__no" data-i18n="method.no3">“Design apart, code apart, tests someday”</span>
+          <span class="swap__arrow mono" aria-hidden="true">→</span>
+          <span class="swap__yes" data-i18n="method.yes3">“One head carries the work from wording to deploy”</span>
+        </li>
+      </ul>
+
+      <!-- перенесено из вырезанного блока [03]: несущий аргумент позиционирования -->
+      <p class="pull" data-i18n="stack.pull">To get started you don’t hire anyone or line up four contractors. Nothing falls through the cracks, because there are no gaps.</p>
+
+      <p class="method__note" data-i18n="method.note">Some call this vibe coding. For me it’s faster research and building — not a promise to “generate” a product. The scenario, the limits, the code and the result are on me.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════ CTA ═══════════════════════════════════ -->
+<section class="sec sec--cta" id="contact">
+  <div class="shell">
+    <div class="cta">
+      <span class="idx mono">[ 06 ]</span>
+      <h2 data-i18n-html="cta.h2">Describe the process you want simplified,<br>or the idea you want tested.</h2>
+      <p data-i18n="cta.p">Three things are enough: what happens today, who uses it, what should change. No spec or mockups needed.</p>
+
+      <div class="cta__row">
+        <a class="btn btn--primary" data-i18n-mail="gadganprod@gmail.com" data-i18n="cta.mail"
+           href="mailto:gadganprod@gmail.com">Email me about the task</a>
+        <a class="btn btn--ghost" href="https://t.me/GadzhaProd" rel="noopener noreferrer" target="_blank" data-i18n="cta.telegram">Message me on Telegram</a>
+      </div>
+
+      <!-- запасной путь: если почтовый клиент не настроен, кнопка выше не сделает ничего.
+           Адрес должен быть виден и доступен для выделения. -->
+      <p class="cta__direct">
+        <span class="mono" data-i18n="cta.direct">or copy the address</span>
+        <span class="cta__addr">gadganprod@gmail.com</span>
+        <a class="cta__addr cta__addr--link" href="https://t.me/GadzhaProd" rel="noopener noreferrer" target="_blank">@GadzhaProd</a>
+      </p>
+
+      <ul class="cta__steps mono">
+        <li><span>01</span> <span data-i18n="cta.s1">you describe the task however you can</span></li>
+        <li><span>02</span> <span data-i18n="cta.s2">I come back with a breakdown: scenario, risk, what to build first</span></li>
+        <li><span>03</span> <span data-i18n="cta.s3">then either we work together, or you simply have a clear plan</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="shell foot__in">
+    <span class="mono">© <span id="year">2026</span> <span data-i18n="foot.rights">GADZHA · AI PRODUCT BUILDER</span></span>
+    <!-- если вернём pulse.js, сюда же вернуть <span id="footSig"> — он пишет туда сводку сигнала -->
+  </div>
+</footer>
+
+<script src="assets/js/i18n.js?v=43"></script>
+<script src="assets/js/field.js?v=42"></script>
+<script src="assets/js/radar.js?v=42"></script>
+<!-- pulse.js не подключается: секция Live Build Pulse снята.
+     Файл и ключи pulse.* в i18n.js оставлены на случай возврата секции. -->
+<script src="assets/js/main.js?v=42"></script>
+</body>
+</html>
